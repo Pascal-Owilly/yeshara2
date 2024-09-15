@@ -23,6 +23,26 @@
   /* 2 */
 }
 
+
+.no-properties-container {
+  height: 100%;
+  text-align: center;
+  padding: 20px;
+}
+
+.no-properties-container svg {
+  width: 48px;
+  height: 48px;
+  color: #f87171; /* Red color for the exclamation icon */
+}
+
+.no-properties-container p {
+  font-size: 1.25rem; /* Text size */
+  color: #4a5568; /* Text color */
+  margin-top: 10px;
+}
+
+
 ::before,
 ::after {
   --tw-content: "";

@@ -680,91 +680,129 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     const apiUrl = 'http://localhost:8000/yeshara/properties/'; // API URL
+    const propertiesContainer = document.getElementById('properties-container');
+    const filterButtons = document.querySelectorAll('.all-properties li button');
 
-    // Fetch property data from API
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Get the properties container element
-            const propertiesContainer = document.getElementById('properties-container');
-            if (!propertiesContainer) {
-                console.error('Properties container element not found');
-                return;
-            }
+    function fetchProperties(filter) {
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                let filteredProperties = data;
 
-            // Create HTML for each property
-            propertiesContainer.innerHTML = data.map(property => `
-                <div class="swiper-slide">
-                    <div class="overflow-hidden rounded-md drop-shadow-[0px_0px_5px_rgba(0,0,0,0.1)] bg-[#FFFDFC] text-center transition-all duration-300 hover:-translate-y-[10px]">
-                        <div class="relative">
-                            <a href="properties-details.html?id=${property.id}" class="block">
-                                <img src="${property.image}" class="w-full h-full" loading="lazy" width="370" height="266" alt="${property.title}">
-                            </a>
-                            <div class="flex flex-wrap flex-col absolute top-5 right-5">
-                                <button class="flex flex-wrap items-center bg-[rgb(11,44,61,0.8)] p-[5px] rounded-[2px] text-white mb-[5px] text-xs">
-                                    <img class="mr-1" src="assets/images/icon/camera.png" loading="lazy" width="13" height="10" alt="camera icon">${property.photoCount || 0}
-                                </button>
-                                <button class="flex flex-wrap items-center bg-[rgb(11,44,61,0.8)] p-[5px] rounded-[2px] text-white text-xs">
-                                    <img class="mr-1" src="assets/images/icon/video.png" loading="lazy" width="14" height="10" alt="video icon">${property.videoCount || 0}
-                                </button>
+                if (filter && filter !== 'all-properties') {
+                    // Map filter value to API status value
+                    const statusMapping = {
+                        'ForBuy': 'for_buy',
+                        'ForSale': 'for_sale',
+                        'ForRent': 'for_rent',
+                        'CoLiving': 'co_living'
+                    };
+                    
+                    const apiStatus = statusMapping[filter] || filter;
+
+                    filteredProperties = data.filter(property => property.status === apiStatus);
+                }
+
+                if (filteredProperties.length > 0) {
+                    propertiesContainer.innerHTML = filteredProperties.map(property => `
+                        <div class="swiper-slide">
+                            <div class="overflow-hidden rounded-md drop-shadow-[0px_0px_5px_rgba(0,0,0,0.1)] bg-[#FFFDFC] text-center transition-all duration-300 hover:-translate-y-[10px]">
+                                <div class="relative">
+                                    <a href="properties-details.html?id=${property.id}" class="block">
+                                        <img src="${property.image}" class="w-full h-full" loading="lazy" width="370" height="266" alt="${property.title}">
+                                    </a>
+                                    <div class="flex flex-wrap flex-col absolute top-5 right-5">
+                                        <button class="flex flex-wrap items-center bg-[rgb(11,44,61,0.8)] p-[5px] rounded-[2px] text-white mb-[5px] text-xs">
+                                            <img class="mr-1" src="assets/images/icon/camera.png" loading="lazy" width="13" height="10" alt="camera icon">${property.photoCount || 0}
+                                        </button>
+                                        <button class="flex flex-wrap items-center bg-[rgb(11,44,61,0.8)] p-[5px] rounded-[2px] text-white text-xs">
+                                            <img class="mr-1" src="assets/images/icon/video.png" loading="lazy" width="14" height="10" alt="video icon">${property.videoCount || 0}
+                                        </button>
+                                    </div>
+                                    <span class="absolute bottom-5 left-5 bg-[#FFFDFC] p-[5px] rounded-[2px] text-primary leading-none text-[14px] font-normal capitalize">${property.status.replace('_', ' ')}</span>
+                                </div>
+                                <div class="py-[20px] px-[20px] text-left">
+                                    <h3>
+                                        <a href="properties-details.html?id=${property.id}" class="font-lora leading-tight text-[22px] xl:text-[26px] text-primary hover:text-secondary transition-all font-medium">
+                                            ${property.title}
+                                        </a>
+                                    </h3>
+                                    <h4>
+                                        <a href="properties-details.html?id=${property.id}" class="font-light text-[14px] leading-[1.75] underline">${property.address}</a>
+                                    </h4>
+                                    <p class="font-light text-[14px] mt-2">${property.description}</p>
+                                    <span class="font-light text-sm">Added: ${property.added_date}</span>
+                                    <ul class="flex flex-wrap items-center justify-between text-[12px] mt-[10px] mb-[15px] pb-[10px] border-b border-[#E0E0E0]">
+                                        <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
+                                            <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 0L14 7H0L7 0Z" />
+                                            </svg>
+                                            <span>${property.square_footage} sq ft</span>
+                                        </li>
+                                        <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
+                                            <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 0L14 7H0L7 0Z" />
+                                            </svg>
+                                            <span>${property.number_of_bedrooms} Beds</span>
+                                        </li>
+                                        <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
+                                            <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 0L14 7H0L7 0Z" />
+                                            </svg>
+                                            <span>${property.number_of_bathrooms} Baths</span>
+                                        </li>
+                                        <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
+                                            <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 0L14 7H0L7 0Z" />
+                                            </svg>
+                                            <span>Ksh ${property.price}</span>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                            <span class="absolute bottom-5 left-5 bg-[#FFFDFC] p-[5px] rounded-[2px] text-primary leading-none text-[14px] font-normal capitalize">${property.for_sale ? 'For Sale' : 'Not for Sale'}</span>
                         </div>
-                        <div class="py-[20px] px-[20px] text-left">
-                            <h3>
-                                <a href="properties-details.html?id=${property.id}" class="font-lora leading-tight text-[22px] xl:text-[26px] text-primary hover:text-secondary transition-all font-medium">
-                                    ${property.title}
-                                </a>
-                            </h3>
-                            <h4>
-                                <a href="properties-details.html?id=${property.id}" class="font-light text-[14px] leading-[1.75] underline">${property.address}</a>
-                            </h4>
-                            <p class="font-light text-[14px] mt-2">${property.description}</p>
-                            <span class="font-light text-sm">Added: ${property.added_date}</span>
-                            <ul class="flex flex-wrap items-center justify-between text-[12px] mt-[10px] mb-[15px] pb-[10px] border-b border-[#E0E0E0]">
-                                <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
-                                    <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 0L14 7H0L7 0Z" /> <!-- Example SVG path -->
-                                    </svg>
-                                    <span>${property.square_footage} sq ft</span>
-                                </li>
-                                <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
-                                    <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 0L14 7H0L7 0Z" /> <!-- Example SVG path -->
-                                    </svg>
-                                    <span>${property.number_of_bedrooms} Beds</span>
-                                </li>
-                                <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
-                                    <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 0L14 7H0L7 0Z" /> <!-- Example SVG path -->
-                                    </svg>
-                                    <span>${property.number_of_bathrooms} Baths</span>
-                                </li>
-                                <li class="flex flex-wrap items-center pr-[25px] sm:pr-[5px] md:pr-[25px] border-r border-[#E0DEDE]">
-                                    <svg class="mr-[5px]" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M7 0L14 7H0L7 0Z" /> <!-- Example SVG path -->
-                                    </svg>
-                                    <span>Ksh ${property.price}</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        })
-        .catch(error => {
-            console.error('Error fetching properties:', error);
-            const propertiesContainer = document.getElementById('properties-container');
-            if (propertiesContainer) {
+                    `).join('');
+                } else {
+                  propertiesContainer.innerHTML = `
+                  <div class="no-properties-container flex items-center justify-center h-full p-10">
+                      <div class="text-center">
+                          <svg class="w-12 h-12 text-red-500 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                          </svg>
+                          <p class="text-xl font-semibold text-gray-800">No properties available for this category.</p>
+                      </div>
+                  </div>
+              `;
+                              }
+            })
+            .catch(error => {
+                console.error('Error fetching properties:', error);
                 propertiesContainer.innerHTML = '<p>Sorry, there was an error loading properties. Please try again later.</p>';
-            }
+            });
+    }
+
+    // Fetch all properties initially
+    fetchProperties();
+
+    // Add event listeners for filter buttons
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const filter = this.parentElement.getAttribute('data-tab');
+            // Highlight active button
+            filterButtons.forEach(btn => btn.parentElement.classList.remove('active'));
+            this.parentElement.classList.add('active');
+            // Fetch and display properties based on selected filter
+            fetchProperties(filter);
         });
+    });
 });
+
+
 
 
 })(jQuery);
